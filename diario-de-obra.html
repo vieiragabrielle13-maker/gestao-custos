@@ -1,0 +1,1257 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Diário de Obra">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#1F3A44">
+<title>Diário de Obra</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap');
+
+  :root{
+    --paper:#F1EEE5;
+    --paper-line:#DFD9C8;
+    --ink:#22282B;
+    --ink-soft:#5B6266;
+    --navy:#1F3A44;
+    --safety:#D9531E;
+    --safety-soft:#F6DCCB;
+    --ok:#2F6B4F;
+    --ok-soft:#DCE8DF;
+    --card:#FBFAF6;
+    --line:#C9C2AD;
+  }
+
+  *{box-sizing:border-box; min-width:0;}
+  html,body{margin:0;padding:0; overflow-x:hidden; width:100%;}
+  body{
+    background:
+      linear-gradient(var(--paper-line) 1px, transparent 1px) 0 0/100% 34px,
+      var(--paper);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    padding-bottom:150px;
+    min-height:100vh;
+  }
+
+  header{
+    background:var(--navy);
+    color:#fff;
+    padding:14px 14px 0;
+    position:sticky;
+    top:0;
+    z-index:20;
+    box-shadow:0 2px 10px rgba(0,0,0,.15);
+  }
+  header .title-row{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    gap:8px;
+  }
+  header h1{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;
+    font-size:22px;
+    letter-spacing:.5px;
+    margin:0;
+    text-transform:uppercase;
+  }
+  header .sub{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:10px;
+    color:#B7C6C9;
+    margin-top:2px;
+    white-space:nowrap;
+  }
+  .obra-input{
+    margin-top:10px;
+    width:100%;
+    background:rgba(255,255,255,.08);
+    border:1px solid rgba(255,255,255,.25);
+    border-radius:8px;
+    padding:9px 10px;
+    color:#fff;
+    font-size:16px;
+    font-weight:600;
+  }
+  .obra-input::placeholder{color:#9FB0B3;}
+
+  /* --- tabs de produto (Custos / Diário) --- */
+  .app-tabs{
+    display:flex;
+    gap:0;
+    margin-top:12px;
+  }
+  .app-tabs button{
+    flex:1;
+    background:transparent;
+    border:none;
+    border-bottom:3px solid transparent;
+    color:#9FB0B3;
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:700;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+    padding:10px 4px 12px;
+  }
+  .app-tabs button.active{
+    color:#fff;
+    border-bottom-color:var(--safety);
+  }
+
+  .week-nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin:10px 0 12px;
+    background:rgba(255,255,255,.06);
+    border-radius:8px;
+    padding:6px;
+  }
+  .week-nav button{
+    background:rgba(255,255,255,.12);
+    border:none;
+    color:#fff;
+    width:34px;
+    height:34px;
+    border-radius:6px;
+    font-size:18px;
+    font-weight:700;
+    flex-shrink:0;
+  }
+  .week-nav .range{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    text-align:center;
+    flex:1;
+  }
+  .week-nav .range small{display:block;color:#9FB0B3;font-size:10px;margin-top:1px;}
+
+  main{padding:14px; max-width:100%;}
+  .tab-panel{display:none;}
+  .tab-panel.active{display:block;}
+
+  .add-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:14px;
+    margin-bottom:16px;
+    box-shadow:0 1px 0 var(--line);
+    max-width:100%;
+  }
+  .add-card h2{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:16px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    margin:0 0 10px;
+    color:var(--navy);
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .grid2{display:grid; grid-template-columns:1fr; gap:8px;}
+  input[type="date"]{
+    width:100%;
+    max-width:100%;
+    min-width:0;
+    -webkit-appearance:none;
+    appearance:none;
+  }
+  .field{margin-bottom:8px; min-width:0;}
+  .field label{
+    display:block;
+    font-size:11px;
+    text-transform:uppercase;
+    letter-spacing:.4px;
+    color:var(--ink-soft);
+    margin-bottom:3px;
+    font-weight:600;
+  }
+  .field input, .field select, .field textarea{
+    width:100%;
+    max-width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    font-size:16px;
+    font-family:'Inter',sans-serif;
+    background:#fff;
+    color:var(--ink);
+  }
+  .field input[data-valor]{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+
+  .pago-toggle{
+    display:flex;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .pago-toggle button{
+    flex:1;
+    padding:10px;
+    border-radius:8px;
+    border:2px solid var(--line);
+    background:#fff;
+    font-weight:700;
+    font-size:13px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+    color:var(--ink-soft);
+  }
+  .pago-toggle button.active-pago{
+    background:var(--ok-soft);
+    border-color:var(--ok);
+    color:var(--ok);
+  }
+  .pago-toggle button.active-pendente{
+    background:var(--safety-soft);
+    border-color:var(--safety);
+    color:var(--safety);
+  }
+
+  .btn-add{
+    width:100%;
+    padding:13px;
+    background:var(--safety);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    font-weight:700;
+    font-size:15px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
+  .btn-add:active{opacity:.85;}
+
+  .list-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:baseline;
+    margin-bottom:8px;
+  }
+  .list-header h2{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px;
+    text-transform:uppercase;
+    color:var(--navy);
+    margin:0;
+  }
+  .list-header .count{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12px;
+    color:var(--ink-soft);
+  }
+
+  .entry{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:10px;
+    position:relative;
+    max-width:100%;
+  }
+  .entry-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .entry-desc{
+    font-weight:700;
+    font-size:14px;
+    flex:1;
+    min-width:0;
+    border:none;
+    background:transparent;
+    padding:0;
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+  }
+  .stamp{
+    font-family:'Barlow Condensed',sans-serif;
+    font-weight:800;
+    font-size:11px;
+    letter-spacing:1px;
+    padding:4px 8px;
+    border-radius:5px;
+    border:2px solid;
+    transform:rotate(-3deg);
+    white-space:nowrap;
+    text-transform:uppercase;
+    flex-shrink:0;
+  }
+  .stamp.pago{color:var(--ok);border-color:var(--ok);background:var(--ok-soft);}
+  .stamp.pendente{color:var(--safety);border-color:var(--safety);background:var(--safety-soft);}
+
+  .entry-meta{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+    margin-bottom:8px;
+  }
+  .meta-field{display:flex;flex-direction:column; min-width:0;}
+  .meta-field span.lbl{font-size:10px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.3px;}
+  .meta-field input{
+    width:100%;
+    max-width:100%;
+    border:none;
+    border-bottom:1px dashed var(--line);
+    background:transparent;
+    padding:3px 0;
+    font-size:14px;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+  }
+  .meta-field input[data-valor]{font-family:'IBM Plex Mono',monospace;font-weight:700;color:var(--navy);font-size:15px;}
+
+  .entry-bottom{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-top:6px;
+    flex-wrap:wrap;
+    gap:6px;
+  }
+  .toggle-mini{
+    display:flex;
+    gap:6px;
+  }
+  .toggle-mini button{
+    padding:6px 10px;
+    border-radius:6px;
+    border:1.5px solid var(--line);
+    background:#fff;
+    font-size:11px;
+    font-weight:700;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+  }
+  .toggle-mini button.on-pago{background:var(--ok-soft);border-color:var(--ok);color:var(--ok);}
+  .toggle-mini button.on-pendente{background:var(--safety-soft);border-color:var(--safety);color:var(--safety);}
+  .del-btn{
+    background:none;
+    border:none;
+    color:var(--ink-soft);
+    font-size:18px;
+    padding:4px 8px;
+  }
+
+  .empty{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--ink-soft);
+    font-size:14px;
+  }
+
+  footer{
+    position:fixed;
+    bottom:0;
+    left:0;
+    right:0;
+    background:var(--navy);
+    color:#fff;
+    padding:12px 14px 16px;
+    box-shadow:0 -2px 10px rgba(0,0,0,.2);
+    z-index:20;
+  }
+  .totals{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr;
+    gap:8px;
+    margin-bottom:10px;
+  }
+  .totals .box{text-align:center; min-width:0;}
+  .totals .box .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.4px;color:#9FB0B3;}
+  .totals .box .val{font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:14px;margin-top:2px; word-break:break-word;}
+  .totals .box.pago .val{color:#8FD6AC;}
+  .totals .box.pendente .val{color:#F3A67F;}
+  .btn-export{
+    width:100%;
+    padding:12px;
+    background:#fff;
+    color:var(--navy);
+    border:none;
+    border-radius:8px;
+    font-weight:700;
+    font-size:14px;
+    text-transform:uppercase;
+    letter-spacing:.5px;
+  }
+
+  .modal-bg{
+    position:fixed;inset:0;
+    background:rgba(0,0,0,.5);
+    display:none;
+    align-items:flex-end;
+    z-index:50;
+  }
+  .modal-bg.show{display:flex;}
+  .modal{
+    background:#fff;
+    width:100%;
+    max-height:80vh;
+    border-radius:14px 14px 0 0;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+  }
+  .modal h3{
+    font-family:'Barlow Condensed',sans-serif;
+    text-transform:uppercase;
+    color:var(--navy);
+    margin:0 0 10px;
+  }
+  .modal textarea{
+    flex:1;
+    min-height:280px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:10px;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:12.5px;
+    line-height:1.5;
+    resize:none;
+    margin-bottom:10px;
+  }
+  .modal-actions{display:flex;gap:8px;}
+  .modal-actions button{
+    flex:1;
+    padding:11px;
+    border-radius:8px;
+    border:none;
+    font-weight:700;
+    font-size:14px;
+  }
+  .modal-actions .copy{background:var(--safety);color:#fff;}
+  .modal-actions .close{background:#eee;color:var(--ink);}
+
+  /* --- Diário de Obra (aba por dia) --- */
+  .day-tabs{
+    display:grid;
+    grid-template-columns:repeat(7, minmax(0,1fr));
+    gap:5px;
+    margin-bottom:14px;
+  }
+  .day-tab{
+    background:var(--card);
+    border:1.5px solid var(--line);
+    border-radius:8px;
+    padding:7px 2px;
+    text-align:center;
+    font-family:'Inter',sans-serif;
+    position:relative;
+  }
+  .day-tab .dow{
+    display:block;
+    font-size:10px;
+    text-transform:uppercase;
+    color:var(--ink-soft);
+    font-weight:700;
+    letter-spacing:.3px;
+  }
+  .day-tab .dnum{
+    display:block;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:14px;
+    font-weight:700;
+    margin-top:2px;
+  }
+  .day-tab.selected{
+    background:var(--navy);
+    border-color:var(--navy);
+  }
+  .day-tab.selected .dow, .day-tab.selected .dnum{color:#fff;}
+  .day-tab .dot{
+    width:5px;height:5px;border-radius:50%;
+    background:var(--safety);
+    margin:3px auto 0;
+    visibility:hidden;
+  }
+  .day-tab.has-content .dot{visibility:visible;}
+  .day-tab.selected .dot{background:#8FD6AC;}
+
+  .diario-day-label{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:18px;
+    color:var(--navy);
+    text-transform:uppercase;
+    margin-bottom:10px;
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+  }
+  .diario-day-label small{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:11px;
+    color:var(--ink-soft);
+    text-transform:none;
+  }
+
+  .diario-textarea{
+    width:100%;
+    min-height:140px;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:12px;
+    font-family:'Inter',sans-serif;
+    font-size:14px;
+    line-height:1.5;
+    background:var(--card);
+    color:var(--ink);
+    resize:vertical;
+    margin-bottom:16px;
+  }
+  .diario-textarea::placeholder{color:#A9A392;}
+
+  .fotos-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:10px;
+  }
+  .fotos-header h3{
+    font-family:'Barlow Condensed',sans-serif;
+    font-size:16px;
+    color:var(--navy);
+    text-transform:uppercase;
+    margin:0;
+  }
+  .btn-foto{
+    background:var(--safety);
+    color:#fff;
+    border:none;
+    border-radius:8px;
+    padding:9px 12px;
+    font-size:13px;
+    font-weight:700;
+    text-transform:uppercase;
+  }
+  input[type="file"]{display:none;}
+
+  .fotos-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  .foto-card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .foto-card img{
+    width:100%;
+    height:120px;
+    object-fit:cover;
+    display:block;
+    cursor:pointer;
+  }
+  .foto-card .foto-cap{
+    padding:8px;
+  }
+  .foto-card input{
+    width:100%;
+    border:none;
+    background:transparent;
+    font-size:12.5px;
+    font-family:'Inter',sans-serif;
+    color:var(--ink);
+    padding:2px 0;
+  }
+  .foto-card input::placeholder{color:#A9A392;}
+  .foto-actions{
+    display:flex;
+    border-top:1px dashed var(--line);
+  }
+  .foto-actions button{
+    flex:1;
+    background:none;
+    border:none;
+    font-size:10.5px;
+    font-weight:700;
+    text-transform:uppercase;
+    padding:7px 2px;
+  }
+  .foto-baixar{color:var(--ok); border-right:1px dashed var(--line);}
+  .foto-del{color:var(--safety);}
+
+  /* visualizador em tela cheia */
+  .foto-viewer{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.94);
+    display:none;
+    z-index:100;
+    flex-direction:column;
+  }
+  .foto-viewer.show{display:flex;}
+  .foto-viewer .fv-top{
+    display:flex;
+    justify-content:flex-end;
+    padding:14px;
+  }
+  .foto-viewer .fv-close{
+    background:rgba(255,255,255,.12);
+    border:none;
+    color:#fff;
+    width:38px;
+    height:38px;
+    border-radius:50%;
+    font-size:20px;
+  }
+  .foto-viewer .fv-imgwrap{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    padding:0 10px;
+  }
+  .foto-viewer img{
+    max-width:100%;
+    max-height:100%;
+    object-fit:contain;
+  }
+  .foto-viewer .fv-caption{
+    background:rgba(0,0,0,.72);
+    color:#fff;
+    padding:16px;
+    font-size:14px;
+    line-height:1.5;
+    min-height:20px;
+  }
+
+  .empty-diario{
+    text-align:center;
+    padding:20px;
+    color:var(--ink-soft);
+    font-size:13px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="title-row">
+    <h1>📐 Diário de Obra</h1>
+    <span class="sub" id="hoje"></span>
+  </div>
+  <input class="obra-input" id="obraNome" placeholder="Nome da obra / cliente" />
+  <div class="app-tabs">
+    <button id="tabBtnCustos" class="active" onclick="mudaTab('custos')">💰 Gestão de custos</button>
+    <button id="tabBtnDiario" onclick="mudaTab('diario')">📔 Diário de obra</button>
+  </div>
+  <div class="week-nav" id="weekNavCustos">
+    <button onclick="mudaSemana(-1)">‹</button>
+    <div class="range">
+      <span id="weekRange">—</span>
+      <small id="weekLabel">semana</small>
+    </div>
+    <button onclick="mudaSemana(1)">›</button>
+  </div>
+  <div class="week-nav" id="weekNavDiario" style="display:none;">
+    <button onclick="mudaSemanaDiario(-1)">‹</button>
+    <div class="range">
+      <span id="weekRangeDiario">—</span>
+      <small id="weekLabelDiario">semana</small>
+    </div>
+    <button onclick="mudaSemanaDiario(1)">›</button>
+  </div>
+</header>
+
+<main>
+
+  <!-- ===================== ABA: GESTÃO DE CUSTOS ===================== -->
+  <div class="tab-panel active" id="panelCustos">
+    <div class="add-card">
+      <h2>➕ Novo lançamento</h2>
+      <div class="grid2">
+        <div class="field">
+          <label>Data</label>
+          <input type="date" id="fData">
+        </div>
+        <div class="field">
+          <label>Valor (R$)</label>
+          <input type="text" inputmode="decimal" id="fValor" placeholder="0,00" data-valor>
+        </div>
+      </div>
+      <div class="field">
+        <label>Descrição / Nota fiscal</label>
+        <input type="text" id="fDesc" placeholder="Ex: Cimento 50kg, NF 1234">
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Fornecedor / Prestador</label>
+          <input type="text" id="fFornecedor" placeholder="Ex: Casa do Construtor">
+        </div>
+        <div class="field">
+          <label>Quem pagou</label>
+          <input type="text" id="fQuemPagou" placeholder="Ex: Cliente, Eu">
+        </div>
+      </div>
+      <div class="pago-toggle">
+        <button type="button" id="btnPagoSim" onclick="setStatus(true)">Pago</button>
+        <button type="button" id="btnPagoNao" onclick="setStatus(false)">Pendente</button>
+      </div>
+      <button class="btn-add" onclick="addEntry()">Adicionar lançamento</button>
+    </div>
+
+    <div class="list-header">
+      <h2>Lançamentos da semana</h2>
+      <span class="count" id="countLabel">0</span>
+    </div>
+
+    <div id="lista"></div>
+    <div class="empty" id="emptyMsg" style="display:none;">Nenhum lançamento nesta semana.<br>Adicione o primeiro acima ☝️</div>
+  </div>
+
+  <!-- ===================== ABA: DIÁRIO DE OBRA ===================== -->
+  <div class="tab-panel" id="panelDiario">
+    <div class="day-tabs" id="dayTabs"></div>
+
+    <div class="diario-day-label">
+      <span id="diaLabelPrincipal">Dia</span>
+      <small id="diaLabelData"></small>
+    </div>
+
+    <textarea class="diario-textarea" id="diarioTexto" placeholder="Registre aqui o que aconteceu hoje: clima, equipe presente, etapas concluídas, ocorrências, pendências..." oninput="onDiarioTextoInput()"></textarea>
+
+    <div class="fotos-header">
+      <h3>📷 Fotos do dia</h3>
+      <button class="btn-foto" onclick="document.getElementById('fotoInput').click()">Adicionar foto</button>
+      <input type="file" id="fotoInput" accept="image/*" capture="environment" onchange="onFotoSelecionada(event)">
+    </div>
+
+    <div class="fotos-grid" id="fotosGrid"></div>
+    <div class="empty-diario" id="emptyFotos" style="display:none;">Nenhuma foto adicionada neste dia.</div>
+    <p style="font-size:11px;color:var(--ink-soft);margin-top:10px;">As fotos ficam salvas neste aparelho. Toque em "Baixar" em cada foto para guardar uma cópia também nos Arquivos/Fotos do iPhone.</p>
+  </div>
+
+</main>
+
+<footer id="footerCustos">
+  <div class="totals">
+    <div class="box"><div class="lbl">Total</div><div class="val" id="totGeral">R$ 0,00</div></div>
+    <div class="box pago"><div class="lbl">Pago</div><div class="val" id="totPago">R$ 0,00</div></div>
+    <div class="box pendente"><div class="lbl">Pendente</div><div class="val" id="totPendente">R$ 0,00</div></div>
+  </div>
+  <button class="btn-export" onclick="abrirExport()">📤 Exportar para WhatsApp</button>
+</footer>
+
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>Resumo para WhatsApp</h3>
+    <textarea id="exportText" readonly></textarea>
+    <div class="modal-actions">
+      <button class="close" onclick="fecharExport()">Fechar</button>
+      <button class="copy" onclick="copiarTexto()">Copiar texto</button>
+    </div>
+  </div>
+</div>
+
+<div class="foto-viewer" id="fotoViewer">
+  <div class="fv-top"><button class="fv-close" onclick="fecharFotoViewer()">✕</button></div>
+  <div class="fv-imgwrap"><img id="fvImg" src=""></div>
+  <div class="fv-caption" id="fvCaption"></div>
+</div>
+
+<script>
+/* ======================= ESTADO GERAL ======================= */
+let entries = [];
+let statusNovo = true;
+let weekOffset = 0;
+
+let diarioLogs = {}; // { 'YYYY-MM-DD': { texto:'', fotos:[{id,src,legenda}] } }
+let weekOffsetDiario = 0;
+let selectedDiaIso = null;
+let activeTab = 'custos';
+
+const STORAGE_KEY = 'diario-obra-entries';
+const OBRA_KEY = 'diario-obra-nome';
+const DIARIO_KEY = 'diario-obra-logs';
+
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2,7); }
+
+/* ======================= ARMAZENAMENTO LOCAL (iPhone) =======================
+   Usa localStorage do próprio navegador, salvo direto no aparelho.
+   Funciona sozinho depois de "Adicionar à Tela de Início" no Safari. */
+async function storageGet(key){
+  try{
+    const v = localStorage.getItem(key);
+    return v===null ? null : {value:v};
+  }catch(e){
+    console.error('Erro ao ler', key, e);
+    return null;
+  }
+}
+async function storageSet(key, value){
+  try{
+    localStorage.setItem(key, value);
+    return {value};
+  }catch(e){
+    console.error('Erro ao salvar', key, e);
+    throw e;
+  }
+}
+
+/* ======================= HELPERS ======================= */
+function fmtMoeda(v){
+  return 'R$ ' + (Number(v)||0).toLocaleString('pt-BR',{minimumFractionDigits:2, maximumFractionDigits:2});
+}
+function parseValor(str){
+  if(!str) return 0;
+  let s = str.toString().trim().replace(/[R$\s]/g,'');
+  s = s.replace(/\./g,'').replace(',', '.');
+  const n = parseFloat(s);
+  return isNaN(n) ? 0 : n;
+}
+function fmtDataBR(iso){
+  if(!iso) return '';
+  const [y,m,d] = iso.split('-');
+  return d+'/'+m+'/'+y;
+}
+function getMonday(d){
+  const date = new Date(d);
+  const day = date.getDay();
+  const diff = date.getDate() - day + (day===0 ? -6 : 1);
+  const monday = new Date(date.setDate(diff));
+  monday.setHours(0,0,0,0);
+  return monday;
+}
+function isoLocal(d){
+  const y=d.getFullYear(), m=String(d.getMonth()+1).padStart(2,'0'), day=String(d.getDate()).padStart(2,'0');
+  return y+'-'+m+'-'+day;
+}
+function escAttr(s){ return (s||'').replace(/"/g,'&quot;'); }
+
+/* ======================= TABS DE PRODUTO ======================= */
+function mudaTab(tab){
+  activeTab = tab;
+  document.getElementById('panelCustos').classList.toggle('active', tab==='custos');
+  document.getElementById('panelDiario').classList.toggle('active', tab==='diario');
+  document.getElementById('tabBtnCustos').classList.toggle('active', tab==='custos');
+  document.getElementById('tabBtnDiario').classList.toggle('active', tab==='diario');
+  document.getElementById('weekNavCustos').style.display = tab==='custos' ? 'flex' : 'none';
+  document.getElementById('weekNavDiario').style.display = tab==='diario' ? 'flex' : 'none';
+  document.getElementById('footerCustos').style.display = tab==='custos' ? 'block' : 'none';
+  document.body.style.paddingBottom = tab==='custos' ? '150px' : '30px';
+}
+
+/* ======================= GESTÃO DE CUSTOS (semana) ======================= */
+function currentWeekRange(){
+  const base = new Date();
+  base.setDate(base.getDate() + weekOffset*7);
+  const monday = getMonday(base);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  return {monday, sunday};
+}
+function updateWeekLabel(){
+  const {monday, sunday} = currentWeekRange();
+  const fmt = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  document.getElementById('weekRange').textContent = fmt(monday)+' a '+fmt(sunday);
+  document.getElementById('weekLabel').textContent = weekOffset===0 ? 'esta semana' : (weekOffset<0 ? Math.abs(weekOffset)+' semana(s) atrás' : 'em '+weekOffset+' semana(s)');
+}
+function mudaSemana(dir){
+  weekOffset += dir;
+  updateWeekLabel();
+  render();
+}
+function entriesDaSemana(){
+  const {monday, sunday} = currentWeekRange();
+  const mIso = isoLocal(monday), sIso = isoLocal(sunday);
+  return entries.filter(e => e.data >= mIso && e.data <= sIso);
+}
+function setStatus(pago){
+  statusNovo = pago;
+  document.getElementById('btnPagoSim').className = pago ? 'active-pago' : '';
+  document.getElementById('btnPagoNao').className = !pago ? 'active-pendente' : '';
+}
+async function saveEntries(){
+  try{ await storageSet(STORAGE_KEY, JSON.stringify(entries)); }
+  catch(e){ alert('Não foi possível salvar os lançamentos. Tente novamente.'); }
+}
+async function saveObraNome(nome){
+  try{ await storageSet(OBRA_KEY, nome); }catch(e){}
+}
+async function addEntry(){
+  const data = document.getElementById('fData').value;
+  const valor = parseValor(document.getElementById('fValor').value);
+  const desc = document.getElementById('fDesc').value.trim();
+  const fornecedor = document.getElementById('fFornecedor').value.trim();
+  const quemPagou = document.getElementById('fQuemPagou').value.trim();
+
+  if(!data){ alert('Preencha a data.'); return; }
+  if(!valor){ alert('Preencha o valor.'); return; }
+
+  entries.push({ id: uid(), data, valor, desc: desc || '(sem descrição)', fornecedor, quemPagou, pago: statusNovo });
+
+  document.getElementById('fValor').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fFornecedor').value = '';
+  document.getElementById('fQuemPagou').value = '';
+  document.getElementById('fData').value = isoLocal(new Date());
+  setStatus(true);
+
+  await saveEntries();
+  weekOffset = 0;
+  updateWeekLabel();
+  render();
+}
+async function updateEntry(id, field, value){
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+  if(field==='valor') e.valor = parseValor(value);
+  else e[field] = value;
+  await saveEntries();
+  render();
+}
+async function togglePago(id, pago){
+  const e = entries.find(x=>x.id===id);
+  if(!e) return;
+  e.pago = pago;
+  await saveEntries();
+  render();
+}
+async function delEntry(id){
+  if(!confirm('Excluir este lançamento?')) return;
+  entries = entries.filter(x=>x.id!==id);
+  await saveEntries();
+  render();
+}
+function render(){
+  const lista = entriesDaSemana().sort((a,b)=> a.data.localeCompare(b.data));
+  const container = document.getElementById('lista');
+  const empty = document.getElementById('emptyMsg');
+  container.innerHTML = '';
+  document.getElementById('countLabel').textContent = lista.length + (lista.length===1 ? ' item' : ' itens');
+
+  if(lista.length===0){
+    empty.style.display='block';
+  } else {
+    empty.style.display='none';
+    lista.forEach(e=>{
+      const div = document.createElement('div');
+      div.className = 'entry';
+      div.innerHTML = `
+        <div class="entry-top">
+          <input class="entry-desc" value="${escAttr(e.desc)}" onchange="updateEntry('${e.id}','desc',this.value)">
+          <span class="stamp ${e.pago?'pago':'pendente'}">${e.pago?'Pago':'Pendente'}</span>
+        </div>
+        <div class="entry-meta">
+          <div class="meta-field">
+            <span class="lbl">Data</span>
+            <input type="date" value="${e.data}" onchange="updateEntry('${e.id}','data',this.value)">
+          </div>
+          <div class="meta-field">
+            <span class="lbl">Valor</span>
+            <input data-valor value="${e.valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}" onchange="updateEntry('${e.id}','valor',this.value)">
+          </div>
+          <div class="meta-field">
+            <span class="lbl">Fornecedor</span>
+            <input value="${escAttr(e.fornecedor)}" onchange="updateEntry('${e.id}','fornecedor',this.value)">
+          </div>
+          <div class="meta-field">
+            <span class="lbl">Quem pagou</span>
+            <input value="${escAttr(e.quemPagou)}" onchange="updateEntry('${e.id}','quemPagou',this.value)">
+          </div>
+        </div>
+        <div class="entry-bottom">
+          <div class="toggle-mini">
+            <button class="${e.pago?'on-pago':''}" onclick="togglePago('${e.id}', true)">Pago</button>
+            <button class="${!e.pago?'on-pendente':''}" onclick="togglePago('${e.id}', false)">Pendente</button>
+          </div>
+          <button class="del-btn" onclick="delEntry('${e.id}')">🗑️</button>
+        </div>
+      `;
+      container.appendChild(div);
+    });
+  }
+
+  const totGeral = lista.reduce((s,e)=>s+e.valor,0);
+  const totPago = lista.filter(e=>e.pago).reduce((s,e)=>s+e.valor,0);
+  const totPendente = totGeral - totPago;
+  document.getElementById('totGeral').textContent = fmtMoeda(totGeral);
+  document.getElementById('totPago').textContent = fmtMoeda(totPago);
+  document.getElementById('totPendente').textContent = fmtMoeda(totPendente);
+}
+
+/* ======================= EXPORTAÇÃO WHATSAPP ======================= */
+function abrirExport(){
+  const lista = entriesDaSemana().sort((a,b)=> a.data.localeCompare(b.data));
+  const obra = document.getElementById('obraNome').value.trim() || 'Sem nome';
+  const {monday, sunday} = currentWeekRange();
+  const fmt = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'});
+
+  const pagos = lista.filter(e=>e.pago);
+  const pendentes = lista.filter(e=>!e.pago);
+  const totPago = pagos.reduce((s,e)=>s+e.valor,0);
+  const totPendente = pendentes.reduce((s,e)=>s+e.valor,0);
+  const totGeral = totPago + totPendente;
+
+  let txt = `📋 *DIÁRIO DE OBRA – ${obra.toUpperCase()}*\n`;
+  txt += `🗓 Semana: ${fmt(monday)} a ${fmt(sunday)}\n\n`;
+
+  if(pagos.length){
+    txt += `✅ *PAGO (${pagos.length})*\n`;
+    pagos.forEach(e=>{
+      txt += `${fmtDataBR(e.data)} – ${e.desc}`;
+      if(e.fornecedor) txt += ` (${e.fornecedor})`;
+      txt += ` – ${fmtMoeda(e.valor)}`;
+      if(e.quemPagou) txt += ` – pago por: ${e.quemPagou}`;
+      txt += `\n`;
+    });
+    txt += `Subtotal pago: *${fmtMoeda(totPago)}*\n\n`;
+  }
+
+  if(pendentes.length){
+    txt += `⏳ *PENDENTE (${pendentes.length})*\n`;
+    pendentes.forEach(e=>{
+      txt += `${fmtDataBR(e.data)} – ${e.desc}`;
+      if(e.fornecedor) txt += ` (${e.fornecedor})`;
+      txt += ` – ${fmtMoeda(e.valor)}`;
+      if(e.quemPagou) txt += ` – responsável: ${e.quemPagou}`;
+      txt += `\n`;
+    });
+    txt += `Subtotal pendente: *${fmtMoeda(totPendente)}*\n\n`;
+  }
+
+  if(!lista.length){ txt += `Nenhum lançamento nesta semana.\n\n`; }
+  txt += `💰 *TOTAL DA SEMANA: ${fmtMoeda(totGeral)}*`;
+
+  document.getElementById('exportText').value = txt;
+  document.getElementById('modalBg').classList.add('show');
+}
+function fecharExport(){ document.getElementById('modalBg').classList.remove('show'); }
+function copiarTexto(){
+  const ta = document.getElementById('exportText');
+  ta.select();
+  ta.setSelectionRange(0, 999999);
+  try{ navigator.clipboard.writeText(ta.value); alert('Texto copiado! Agora é só colar no WhatsApp.'); }
+  catch(e){ document.execCommand('copy'); alert('Texto copiado!'); }
+}
+
+/* ======================= DIÁRIO DE OBRA (por dia) ======================= */
+function currentWeekRangeDiario(){
+  const base = new Date();
+  base.setDate(base.getDate() + weekOffsetDiario*7);
+  const monday = getMonday(base);
+  const sunday = new Date(monday);
+  sunday.setDate(monday.getDate()+6);
+  return {monday, sunday};
+}
+function updateWeekLabelDiario(){
+  const {monday, sunday} = currentWeekRangeDiario();
+  const fmt = d => d.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit'});
+  document.getElementById('weekRangeDiario').textContent = fmt(monday)+' a '+fmt(sunday);
+  document.getElementById('weekLabelDiario').textContent = weekOffsetDiario===0 ? 'esta semana' : (weekOffsetDiario<0 ? Math.abs(weekOffsetDiario)+' semana(s) atrás' : 'em '+weekOffsetDiario+' semana(s)');
+}
+function mudaSemanaDiario(dir){
+  weekOffsetDiario += dir;
+  updateWeekLabelDiario();
+  renderDayTabs();
+  // ao mudar de semana, seleciona a segunda-feira daquela semana
+  const {monday} = currentWeekRangeDiario();
+  selecionaDia(isoLocal(monday));
+}
+function renderDayTabs(){
+  const {monday} = currentWeekRangeDiario();
+  const dows = ['SEG','TER','QUA','QUI','SEX','SÁB','DOM'];
+  const container = document.getElementById('dayTabs');
+  container.innerHTML = '';
+  for(let i=0;i<7;i++){
+    const d = new Date(monday);
+    d.setDate(monday.getDate()+i);
+    const iso = isoLocal(d);
+    const log = diarioLogs[iso];
+    const hasContent = !!(log && ((log.texto && log.texto.trim()) || (log.fotos && log.fotos.length)));
+    const btn = document.createElement('button');
+    btn.className = 'day-tab' + (iso===selectedDiaIso ? ' selected' : '') + (hasContent ? ' has-content' : '');
+    btn.innerHTML = `<span class="dow">${dows[i]}</span><span class="dnum">${String(d.getDate()).padStart(2,'0')}</span><span class="dot"></span>`;
+    btn.onclick = () => selecionaDia(iso);
+    container.appendChild(btn);
+  }
+}
+function selecionaDia(iso){
+  selectedDiaIso = iso;
+  renderDayTabs();
+  renderDiaConteudo();
+}
+function renderDiaConteudo(){
+  if(!selectedDiaIso) return;
+  const d = new Date(selectedDiaIso+'T00:00:00');
+  const dows = ['Domingo','Segunda-feira','Terça-feira','Quarta-feira','Quinta-feira','Sexta-feira','Sábado'];
+  document.getElementById('diaLabelPrincipal').textContent = dows[d.getDay()];
+  document.getElementById('diaLabelData').textContent = fmtDataBR(selectedDiaIso);
+
+  const log = diarioLogs[selectedDiaIso] || {texto:'', fotos:[]};
+  document.getElementById('diarioTexto').value = log.texto || '';
+
+  const grid = document.getElementById('fotosGrid');
+  const empty = document.getElementById('emptyFotos');
+  grid.innerHTML = '';
+  if(!log.fotos || log.fotos.length===0){
+    empty.style.display = 'block';
+  } else {
+    empty.style.display = 'none';
+    log.fotos.forEach(f=>{
+      const card = document.createElement('div');
+      card.className = 'foto-card';
+      card.innerHTML = `
+        <img src="${f.src}" onclick="abrirFotoViewer('${f.id}')">
+        <div class="foto-cap">
+          <input type="text" placeholder="Descrição da foto" value="${escAttr(f.legenda)}" onchange="editaLegenda('${f.id}', this.value)">
+        </div>
+        <div class="foto-actions">
+          <button class="foto-baixar" onclick="baixarFoto('${f.id}')">⬇️ Baixar</button>
+          <button class="foto-del" onclick="deletaFoto('${f.id}')">🗑️ Excluir</button>
+        </div>
+      `;
+      grid.appendChild(card);
+    });
+  }
+}
+let diarioTextoTimer = null;
+function onDiarioTextoInput(){
+  clearTimeout(diarioTextoTimer);
+  diarioTextoTimer = setTimeout(salvaDiarioTexto, 500);
+}
+async function salvaDiarioTexto(){
+  if(!selectedDiaIso) return;
+  if(!diarioLogs[selectedDiaIso]) diarioLogs[selectedDiaIso] = {texto:'', fotos:[]};
+  diarioLogs[selectedDiaIso].texto = document.getElementById('diarioTexto').value;
+  await saveDiarioLogs();
+  renderDayTabs();
+}
+async function saveDiarioLogs(){
+  try{
+    await storageSet(DIARIO_KEY, JSON.stringify(diarioLogs));
+  }catch(e){
+    alert('O armazenamento do aparelho está cheio para salvar automaticamente. A foto/texto continua visível agora — toque em "Baixar" em cada foto para guardá-la nos Arquivos do iPhone, ou apague fotos antigas para liberar espaço.');
+  }
+}
+
+function resizeImagem(file, maxW=1100, quality=0.62){
+  return new Promise((resolve, reject)=>{
+    const reader = new FileReader();
+    reader.onload = (ev)=>{
+      const img = new Image();
+      img.onload = ()=>{
+        let w = img.width, h = img.height;
+        if(w > maxW){ h = Math.round(h * (maxW/w)); w = maxW; }
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = reject;
+      img.src = ev.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+async function onFotoSelecionada(event){
+  const file = event.target.files[0];
+  event.target.value = '';
+  if(!file || !selectedDiaIso) return;
+  try{
+    const src = await resizeImagem(file);
+    if(!diarioLogs[selectedDiaIso]) diarioLogs[selectedDiaIso] = {texto:'', fotos:[]};
+    diarioLogs[selectedDiaIso].fotos.push({ id: uid(), src, legenda:'' });
+    await saveDiarioLogs();
+    renderDiaConteudo();
+    renderDayTabs();
+  }catch(e){
+    alert('Não foi possível processar essa foto. Tente outra.');
+  }
+}
+async function editaLegenda(fotoId, legenda){
+  const log = diarioLogs[selectedDiaIso];
+  if(!log) return;
+  const f = log.fotos.find(x=>x.id===fotoId);
+  if(!f) return;
+  f.legenda = legenda;
+  await saveDiarioLogs();
+}
+async function deletaFoto(fotoId){
+  if(!confirm('Excluir esta foto?')) return;
+  const log = diarioLogs[selectedDiaIso];
+  if(!log) return;
+  log.fotos = log.fotos.filter(x=>x.id!==fotoId);
+  await saveDiarioLogs();
+  renderDiaConteudo();
+  renderDayTabs();
+}
+function baixarFoto(fotoId){
+  const log = diarioLogs[selectedDiaIso];
+  if(!log) return;
+  const f = log.fotos.find(x=>x.id===fotoId);
+  if(!f) return;
+  const a = document.createElement('a');
+  a.href = f.src;
+  a.download = `obra-${selectedDiaIso}-${fotoId}.jpg`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
+function abrirFotoViewer(fotoId){
+  const log = diarioLogs[selectedDiaIso];
+  if(!log) return;
+  const f = log.fotos.find(x=>x.id===fotoId);
+  if(!f) return;
+  document.getElementById('fvImg').src = f.src;
+  document.getElementById('fvCaption').textContent = f.legenda && f.legenda.trim() ? f.legenda : 'Sem descrição';
+  document.getElementById('fotoViewer').classList.add('show');
+}
+function fecharFotoViewer(){
+  document.getElementById('fotoViewer').classList.remove('show');
+}
+
+/* ======================= INICIALIZAÇÃO ======================= */
+async function loadAll(){
+  try{
+    const r = await storageGet(STORAGE_KEY);
+    entries = r && r.value ? JSON.parse(r.value) : [];
+  }catch(e){ entries = []; }
+
+  try{
+    const r2 = await storageGet(OBRA_KEY);
+    if(r2 && r2.value) document.getElementById('obraNome').value = r2.value;
+  }catch(e){}
+
+  try{
+    const r3 = await storageGet(DIARIO_KEY);
+    diarioLogs = r3 && r3.value ? JSON.parse(r3.value) : {};
+  }catch(e){ diarioLogs = {}; }
+
+  document.getElementById('fData').value = isoLocal(new Date());
+  updateWeekLabel();
+  render();
+
+  updateWeekLabelDiario();
+  selectedDiaIso = isoLocal(new Date());
+  renderDayTabs();
+  renderDiaConteudo();
+}
+
+document.getElementById('obraNome').addEventListener('change', (e)=> saveObraNome(e.target.value));
+document.getElementById('hoje').textContent = new Date().toLocaleDateString('pt-BR',{weekday:'short', day:'2-digit', month:'2-digit'});
+
+setStatus(true);
+loadAll();
+</script>
+
+</body>
+</html>
